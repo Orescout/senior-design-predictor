@@ -8,7 +8,7 @@ except ModuleNotFoundError:
 import  threading
 
 class Previewer(threading.Thread):
-    window_name = "Arducam"
+    window_name = "PopeEye Live Camera Feed"
     _running = True
     camera = None
     def __init__(self, camera, name):

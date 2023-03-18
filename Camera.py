@@ -1,3 +1,5 @@
+# Inspired from https://github.com/ArduCAM/Jetson_IMX519_Focus_Example/blob/master/JetsonCamera.py
+
 from Previewer import Previewer
 from FrameReader import FrameReader
 
@@ -12,17 +14,25 @@ class Camera(object):
     frame_reader = None
     cap = None
     previewer = None
-    width = None
-    height = None
+    capture_width = None
+    capture_height = None
+    framerate = None
+    flip_method = None
+    display_width = None
+    display_height = None
     
     # Initialize camera object
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
+    def __init__(self, capture_width=1280, capture_height=720, display_width=640, display_height=360,
+                 framerate=60, flip_method=0):
+        self.capture_width = capture_width
+        self.capture_height = capture_height
+        self.framerate = framerate
+        self.flip_method = flip_method
+        self.display_width = display_width
+        self.display_height = display_height
         self.open_camera()
         
-    def gstreamer_pipeline(capture_width=1280, capture_height=720, display_width=640, display_height=360,
-        framerate=60, flip_method=0):
+    def gstreamer_pipeline(self):
         return (
                 "nvarguscamerasrc ! "
                 "video/x-raw(memory:NVMM), "
@@ -33,18 +43,18 @@ class Camera(object):
                 "videoconvert ! "
                 "video/x-raw, format=(string)BGR ! appsink"
                 % (
-                    capture_width,
-                    capture_height,
-                    framerate,
-                    flip_method,
-                    display_width,
-                    display_height,
+                    self.capture_width,
+                    self.capture_height,
+                    self.framerate,
+                    self.flip_method,
+                    self.display_width,
+                    self.display_height,
                 )
             )
 
     # Start camera
     def open_camera(self):
-        self.cap = cv2.VideoCapture(self.gstreamer_pipeline(flip_method=0, display_width=self.width, display_height=self.height), cv2.CAP_GSTREAMER)
+        self.cap = cv2.VideoCapture(self.gstreamer_pipeline(), cv2.CAP_GSTREAMER)
         
         if not self.cap.isOpened():
             raise RuntimeError("Failed to open camera!")
