@@ -64,7 +64,9 @@ class ChainLinkDetector:
         # Merge the bounding boxes and remove duplicates.
         # merged_boxes = np.concatenate(bounding_boxes, axis=0)
         indices = cv2.dnn.NMSBoxes(bounding_boxes[:, :4], bounding_boxes[:, 4], 0.2, 0.9)
-        merged_boxes = bounding_boxes[indices.flatten()]
+        merged_boxes = np.array([])
+        if indices is not ():
+            merged_boxes = bounding_boxes[indices.flatten()]
         
         if preview or save:
             self.__draw_bounding_boxes(image, bounding_boxes, preview, save)

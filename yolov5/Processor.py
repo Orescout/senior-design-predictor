@@ -18,6 +18,11 @@ class Processor:
             angle: the degrees that the anchor is facing at.
         """
         
+        # Check if there's enough bounding boxes. Else exit with angle=-1
+        if self.bounding_boxes.shape[0] < 3:
+             print("No chain links were detected. Skipping processing.")
+             return -1
+
         # convert boxes to center coordinates
         centers = [(int((x1 + x2) / 2), int((y1 + y2) / 2)) for x1, y1, x2, y2, conf, cl in self.bounding_boxes]
         centers = np.array(centers)

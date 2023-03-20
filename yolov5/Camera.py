@@ -3,7 +3,10 @@
 from Previewer import Previewer
 from FrameReader import FrameReader
 
+from PIL import Image
 import cv2
+import os
+import datetime
 try:
     from  Queue import  Queue
 except ModuleNotFoundError:
@@ -68,8 +71,25 @@ class Camera(object):
             
         self.previewer = Previewer(self.frame_reader, "")
 
-    def getFrame(self, timeout = None):
-        return self.frame_reader.getFrame(timeout)
+    def getFrame(self, preview=False, save=False, timeout=None):
+        # Capture the photo
+        image = self.frame_reader.getFrame(timeout)
+        
+        # Save image
+        current_date_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        output_path = f"{os.getcwd()}/data_raw_camera/{current_date_time}.png"
+        cv2.imwrite(output_path, image)
+        
+        # Display image
+        if preview:
+            img = Image.open(output_path)
+            img.show()
+        
+        # If we don't want to save, delete
+        if not save:
+            os.remove(output_path)
+        
+        return image
 
     def start_preview(self):
         self.previewer.daemon = True
