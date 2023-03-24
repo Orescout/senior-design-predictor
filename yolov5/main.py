@@ -53,18 +53,19 @@ def monitor_loop(detector, camera):
         # Take a photo
         image = camera.getFrame(save=True)
         # Replace photo, for debugging purposes (when you don't have a chain)
-        image = cv2.imread("image.png")
+        # image = cv2.imread("image.png")
+        print(image.shape) # (618, 480, 3)
         print("1/3 Done (Taking a photo from camera)")
 
         if image is None:
             print("Image was not read properly.")
             continue
-        
         else:
             # PART II: PROCESSING
 
             # Use YOLO to get locations of chain links
-            bounding_boxes = detector.detect_chainlinks(image, preview=False, save=False)
+            bounding_boxes = detector.detect_chainlinks(image, preview=False, save=True)
+            print(bounding_boxes)
             
             if bounding_boxes.shape[0] > 2:
                 # Process bounding boxes to get valuable information

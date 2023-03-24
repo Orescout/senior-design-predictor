@@ -9,7 +9,7 @@ import datetime
 
 
 class ChainLinkDetector:
-    def __init__(self, model="yoloV5_model_medium.pt", window_size=(400, 400), window_step=(100, 100), path_to_model="/yolov5"):
+    def __init__(self, model="yoloV5_model_medium.pt", window_size=(500, 500), window_step=(100, 100), path_to_model="/yolov5"):
         self.path_to_model = path_to_model
         self.window_size = window_size
         self.window_step = window_step
@@ -35,6 +35,9 @@ class ChainLinkDetector:
         # Temporarily change directory
         # with self.temporary_directory_change(self.path_to_model):
         #     print(os.getcwd())
+        #self.window_size[0] = min(self.window_size[0], image.shape[0])
+        #self.window_size[1] = min(self.window_size[1], image.shape[1])
+        print(self.window_size)
         
         # Initialize a list to store the bounding boxes.
         bounding_boxes = np.empty((0, 6))
