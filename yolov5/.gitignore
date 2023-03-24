@@ -26,6 +26,9 @@ storage.googleapis.com
 runs/*
 data/*
 data/images/*
+data_raw_camera/*
+data_bounding_boxes/*
+data_chain_direction_oclock/*
 !data/*.yaml
 !data/hyps
 !data/scripts
@@ -33,6 +36,7 @@ data/images/*
 !data/images/zidane.jpg
 !data/images/bus.jpg
 !data/*.sh
+
 
 results*.csv
 

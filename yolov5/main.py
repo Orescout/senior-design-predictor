@@ -2,6 +2,7 @@ from ChainLinkDetector import ChainLinkDetector
 from Processor import Processor
 from JsonConstructor import JsonConstructor
 from Camera import Camera
+from Communicator import Communicator
 
 import os
 import argparse
@@ -18,13 +19,12 @@ def key_listener():
 def main():
     
     # PART 0: INITIALIZATION (outside of loop - happens once at start)
-    detector = ChainLinkDetector(model="yoloV5_model_medium.pt")
+    detector = ChainLinkDetector(model="yoloV5_model_medium.pt", window_size=(300, 300))
     camera = Camera()
-    # listener_thread = threading.Thread(target=key_listener)
-    # listener_thread.start()
+    communicator = Communicator()
 
     try:
-        monitor_loop(detector, camera)
+        monitor_loop(detector, camera, communicator)
 
     except Exception as e:
         print("Something went wrong: ", e)
@@ -35,8 +35,8 @@ def main():
         print("---------------------------------------- ALL COMPLETED.")
 
 
-def monitor_loop(detector, camera):
-    for i in range(1000):
+def monitor_loop(detector, camera, communicator):
+    for i in range(10):
         print("--------------------------------------------")
         print("                                            ")
 
@@ -52,6 +52,7 @@ def monitor_loop(detector, camera):
     
         # Take a photo
         image = camera.getFrame(save=True)
+        image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
         # Replace photo, for debugging purposes (when you don't have a chain)
         # image = cv2.imread("image.png")
         print(image.shape) # (618, 480, 3)
@@ -64,13 +65,13 @@ def monitor_loop(detector, camera):
             # PART II: PROCESSING
 
             # Use YOLO to get locations of chain links
-            bounding_boxes = detector.detect_chainlinks(image, preview=False, save=True)
-            print(bounding_boxes)
+            bounding_boxes = detector.detect_chainlinks(image, preview=True, save=True)
+            print('bounding box: ', bounding_boxes)
             
             if bounding_boxes.shape[0] > 2:
                 # Process bounding boxes to get valuable information
                 processor = Processor(image, bounding_boxes)
-                chain_direction_oclock = processor.estimate_chain_direction(preview=False, save=False)
+                chain_direction_oclock = processor.estimate_chain_direction(preview=False, save=True)
                 number_of_chainlinks = processor.get_number_of_chainlinks()
                 print("2/3 Done (Processing photo)")
 
@@ -78,10 +79,11 @@ def monitor_loop(detector, camera):
         # PART III: SEND DATA
 
         # Prep JSON to send
-        JSON = JsonConstructor(number_of_chainlinks, chain_direction_oclock).get_json(printit=True)
+        # JSON = JsonConstructor(number_of_chainlinks, chain_direction_oclock).get_json(printit=True)
 
         # Send data
-        # TODO: Send data to JD.
+        msg = "Ylinks: " + str(number_of_chainlinks)
+        communicator.send(msg)
         print("3/3 Done (Sending JSON data to LoRa)")
 
 
