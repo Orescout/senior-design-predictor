@@ -41,43 +41,19 @@ class ChainLinkDetector:
         print(self.window_size)
         # self.window_size = tuple(self.window_size)
         
-        # Initialize a list to store the bounding boxes.
-        bounding_boxes = np.empty((0, 6))
-
         # Extract the shape of the input image.
         height, width, _ = image.shape
         # print('Image shape: ', image.shape)
 
-        # Slide a window across the image and detect bounding boxes for each window.
-        for y in range(0, height - self.window_size[1], self.window_step[1]):
-            for x in range(0, width - self.window_size[0], self.window_step[0]):
-                # Extract the window.
-                window = image[y:y + self.window_size[1], x:x + self.window_size[0], :]
-                
-                # Detect the bounding boxes for the window.
-                detection_results = self.object_detection_model(window)
-                boxes = detection_results.xyxy[0].numpy()
-                
-                if boxes.shape[0] > 0: # If >0 bounding boxes found
-                    # Adjust the coordinates of the bounding boxes to the original image.
-                    boxes[:, [0, 2]] += x
-                    boxes[:, [1, 3]] += y
-                    
-                    # Append the bounding boxes to the list.
-                    bounding_boxes = np.vstack([bounding_boxes, boxes])
-        
-        # Merge the bounding boxes and remove duplicates.
-        # merged_boxes = np.concatenate(bounding_boxes, axis=0)
-        indices = cv2.dnn.NMSBoxes(bounding_boxes[:, :4], bounding_boxes[:, 4], 0.2, 0.9)
-        merged_boxes = np.array([])
-        if indices is not ():
-            merged_boxes = bounding_boxes[indices.flatten()]
+        # Detect the bounding boxes for the window.
+        detection_results = self.object_detection_model(image)
+        bounding_boxes = detection_results.xyxy[0].numpy()
         
         if preview or save:
             self.__draw_bounding_boxes(image, bounding_boxes, preview, save)
 
         # Return the merged bounding boxes.
-        return merged_boxes
+        return bounding_boxes
 
 
     def __draw_bounding_boxes(self, image, boxes, preview=False, save=False, colors=None, thickness=1, font_scale=0.2, font_thickness=1):

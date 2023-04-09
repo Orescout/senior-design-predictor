@@ -1,4 +1,5 @@
 import serial
+import ujson
 from pyudev import Context
 
 class Communicator:
@@ -33,6 +34,7 @@ class Communicator:
     
     def send(self, message):
         if self.initialized:
+            message = message + "\n"  # Add signal \n to signal the end of the message
             self.serial.write(bytes(message,'utf-8'))
             print("Sent message: " + message)
         elif self.reset_USB_port():

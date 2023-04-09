@@ -1,6 +1,6 @@
 from ChainLinkDetector import ChainLinkDetector
 from Processor import Processor
-from JsonConstructor import JsonConstructor
+from UJSONConstructor import UJSONConstructor
 from Camera import Camera
 from Communicator import Communicator
 
@@ -9,12 +9,8 @@ import argparse
 import cv2
 import keyboard
 import threading
+import time
 
-def key_listener():
-    global keyboard_exit_pressed
-    keyboard.wait('any')
-    keyboard_exit_pressed = True
-    print("Keyboard key was pressed. Stopping program.")
 
 def main():
     
@@ -32,11 +28,12 @@ def main():
     finally:
         # PART FINALE: WINDING THINGS DOWN (outside of loop - happens once at end)
         camera.close()
-        print("---------------------------------------- ALL COMPLETED.")
+        print("---------------------------------------- PROGRAM COMPLETED.")
 
 
 def monitor_loop(detector, camera, communicator):
-    for i in range(10):
+    # for i in range(5):
+    while (True):
         print("--------------------------------------------")
         print("                                            ")
 
@@ -51,11 +48,11 @@ def monitor_loop(detector, camera, communicator):
         # PART I: CAMERA
     
         # Take a photo
-        image = camera.getFrame(save=True)
-        image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        image = camera.getFrame(save=False)
+        # image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
         # Replace photo, for debugging purposes (when you don't have a chain)
-        # image = cv2.imread("image.png")
-        print(image.shape) # (618, 480, 3)
+        image = cv2.imread("image.png")
+        # print(image.shape) # (618, 480, 3)
         print("1/3 Done (Taking a photo from camera)")
 
         if image is None:
@@ -65,28 +62,26 @@ def monitor_loop(detector, camera, communicator):
             # PART II: PROCESSING
 
             # Use YOLO to get locations of chain links
-            bounding_boxes = detector.detect_chainlinks(image, preview=True, save=True)
-            print('bounding box: ', bounding_boxes)
+            bounding_boxes = detector.detect_chainlinks(image, preview=False, save=False)
+            # print('bounding box: ', bounding_boxes)
             
             if bounding_boxes.shape[0] > 2:
                 # Process bounding boxes to get valuable information
                 processor = Processor(image, bounding_boxes)
-                chain_direction_oclock = processor.estimate_chain_direction(preview=False, save=True)
+                chain_direction_degrees = processor.estimate_chain_direction(preview=False, save=False)
                 number_of_chainlinks = processor.get_number_of_chainlinks()
-                print("2/3 Done (Processing photo)")
+                print("2/3 Done (Processed photo)")
 
 
         # PART III: SEND DATA
 
         # Prep JSON to send
-        # JSON = JsonConstructor(number_of_chainlinks, chain_direction_oclock).get_json(printit=True)
+        message_ujson = UJSONConstructor(number_of_chainlinks, chain_direction_degrees).get_json(print=True)
 
         # Send data
-        msg = "Ylinks: " + str(number_of_chainlinks)
-        communicator.send(msg)
-        print("3/3 Done (Sending JSON data to LoRa)")
-
-
+        communicator.send(message_ujson)
+        print("3/3 Done (Sent JSON data to LoRa)")
+                
 if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Take pictures, process and send data")

@@ -59,7 +59,7 @@ class Processor:
         if not save:
             os.remove(output_path)
         
-        return np.round(angle, 2)
+        return np.round(angle, 0)
     
     
     def __find_angle(self, x1, y1, x2, y2):
