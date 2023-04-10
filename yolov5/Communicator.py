@@ -10,6 +10,7 @@ class Communicator:
     
     def reset_USB_port(self):
         # Find devices corresponding to /dev/ttyUSB*
+        print('Resetting Communicator...')
         context = Context()
         device_list = list(context.list_devices(subsystem='tty', ID_BUS='usb'))
                 
